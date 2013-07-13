@@ -1,0 +1,7 @@
+bucket_name: meets_test_bucket
+backups:
+  - target: lib/*.rb
+    upload_dir: test1
+    delete?: false
+  - target: invalid test
+    upload_dir: test2

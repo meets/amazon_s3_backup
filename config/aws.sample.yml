@@ -1,0 +1,7 @@
+# Fill in your AWS Access Key ID and Secret Access Key
+# http://aws.amazon.com/security-credentials
+access_key_id: <SECRET_KEY>
+secret_access_key: <SECRET_ACCESS_KEY>
+s3_server_side_encryption: aes256
+# region: ap-northeast-1
+s3_endpoint: s3-ap-northeast-1.amazonaws.com

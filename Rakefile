@@ -44,15 +44,29 @@ task :backup do
 
         #ファイルのハッシュ値を取得
         md5 = S3Etag.calc(:file => file);
-        p md5
 
         #ファイルのEtagからmd5ハッシュ値を取得して比較
         etag = bucket.objects[upload_name].etag
-        p etag
         if etag.match(md5)
           puts "Skip same file \"#{file}\"."
           next
         end
+
+        #サイクルの設定を確認
+        if b.key?('cycle') && b['cycle'] > 0
+
+          #旧ファイルをリネーム
+          b['cycle'].step(1, -1) do |i|
+
+            org_name = upload_name + (i-1 > 0 ? ".#{i-1}" : '')
+            mv_name = upload_name + (i > 0 ? ".#{i}" : '')
+
+            if bucket.objects[org_name].exists?
+              bucket.objects[org_name].move_to(mv_name)
+            end
+          end
+        end
+
       end
 
       #アップロード

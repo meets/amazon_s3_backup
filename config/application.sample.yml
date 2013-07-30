@@ -3,5 +3,6 @@ backups:
   - target: lib/*.rb
     upload_dir: test1
     delete?: false
+    cycle: 3
   - target: invalid test
     upload_dir: test2

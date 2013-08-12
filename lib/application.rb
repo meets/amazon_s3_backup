@@ -41,6 +41,10 @@ class Application
     @config['backups']
   end
 
+  #バックアップ名の取得
+  def bucket_name
+    @config['bucket_name']
+  end
 
   private
 

@@ -1,0 +1,8 @@
+Host:    <%= @hostname %>
+Bucket:  <%= @bucket_name %>
+
+<%- @list.each do |obj| -%>
+<%= obj[:name] -%><%= obj[:length] %>  <%= obj[:date] %>
+<%- end -%>
+
+Total:   <%= @total %>

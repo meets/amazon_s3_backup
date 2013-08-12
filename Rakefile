@@ -5,7 +5,9 @@ require 'yaml'
 require 'aws-sdk'
 require 'digest/md5'
 require 's3etag'
+require 'erb'
 require './lib/application'
+require './lib/filesize_unit_convert'
 
 
 
@@ -48,8 +50,8 @@ task :backup do
         #ファイルのEtagからmd5ハッシュ値を取得して比較
         etag = bucket.objects[upload_name].etag
         if etag.match(md5)
-          puts "Skip same file \"#{file}\"."
-          next
+#          puts "Skip same file \"#{file}\"."
+#          next
         end
 
         #サイクルの設定を確認
@@ -71,7 +73,8 @@ task :backup do
 
       #アップロード
       bucket.objects.create(upload_name, Pathname.new(file),
-        :server_side_encryption => :aes256)
+        :server_side_encryption => :aes256,
+        :metadata => { 'create_date' => Time.now.strftime('%Y-%m-%d') })
 
       #ファイルの削除
       if b.key?('delete?') && b['delete?'].kind_of?(TrueClass)
@@ -80,6 +83,58 @@ task :backup do
     end
 
 
+  end
+
+end
+
+
+
+
+desc "レポートメール送信"
+task :report do
+
+  #バケットの取得
+  bucket = Application.instance.bucket
+
+  @total = 0
+
+  @hostname = `hostname`.chop
+  @bucket_name = Application.instance.bucket_name
+
+  @list = []
+  bucket.objects.each do | obj |
+
+    length = obj.content_length
+    @total = length + @total
+
+    # printf("[%s]\n", obj.key)
+    if obj.metadata['created_date']
+      # p obj.metadata['created_date']
+    end
+
+    #サイズ前の空白コントロール
+    name = obj.key
+    if name.length < 40
+      (40 - name.length).times { name = name+" " }
+    else
+      name = name + "\n"
+      40.times { name = name+" " }
+    end
+
+    @list.push({
+      :name => name,
+      :length => FilesizeUnitConvert.int2str(length),
+      :date => (obj.metadata['created_date'] ? obj.metadata['created_date'] : obj.last_modified).strftime('%Y-%m-%d')
+    })
+
+  end
+
+  @total = FilesizeUnitConvert.int2str(@total)
+
+  #本文
+  open(File.join(Application.instance.root_path, 'mail/report.erb')) do |f|
+    erb = ERB.new(f.read, nil, '-')
+    puts erb.result
   end
 
 end

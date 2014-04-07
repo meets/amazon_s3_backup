@@ -104,6 +104,9 @@ task :report do
   @list = []
   bucket.objects.each do | obj |
 
+    # バックアップターゲット以外は無視
+    if Application.instance.backups.find { |item| obj.key.match(/#{item['upload_dir']}\//) }
+
     length = obj.content_length
     @total = length + @total
 
@@ -126,6 +129,8 @@ task :report do
       :length => FilesizeUnitConvert.int2str(length),
       :date => (obj.metadata['created_date'] ? obj.metadata['created_date'] : obj.last_modified).strftime('%Y-%m-%d')
     })
+
+    end
 
   end
 

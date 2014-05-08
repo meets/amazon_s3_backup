@@ -1,5 +1,6 @@
 
 require 'singleton'
+require 'hipchat-api'
 
 class Application
   include Singleton
@@ -44,6 +45,13 @@ class Application
   #バックアップ名の取得
   def bucket_name
     @config['bucket_name']
+  end
+
+  #hipchat連携
+  def hipchat_message(message)
+    return if @config['hipchat'].nil?
+    api = HipChat::API.new(@config['hipchat']['token'])
+    api.rooms_message(@config['hipchat']['room_id'], "backup", message, 1, @config['hipchat']['color'], "text")
   end
 
   private

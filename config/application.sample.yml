@@ -6,3 +6,7 @@ backups:
     cycle: 3
   - target: invalid test
     upload_dir: test2
+# hipchat:
+#   token: 
+#   room_id: 
+#   color: gray

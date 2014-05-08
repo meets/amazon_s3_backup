@@ -140,6 +140,8 @@ task :report do
   open(File.join(Application.instance.root_path, 'mail/report.erb')) do |f|
     erb = ERB.new(f.read, nil, '-')
     puts erb.result
+
+    Application.instance.hipchat_message(erb.result)
   end
 
 end

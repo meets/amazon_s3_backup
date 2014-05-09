@@ -9,5 +9,3 @@ current_dir=`dirname $self`
 cd "$current_dir/.."
 
 bundle exec rake backup
-
-bundle exec rake report

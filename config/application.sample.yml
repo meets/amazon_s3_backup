@@ -10,3 +10,15 @@ backups:
 #   token: 
 #   room_id: 
 #   color: gray
+# mail:
+#   to: to@hoge.com
+#   from: from@hoge.com
+#   subject: バックアップレポート
+#   smtp:
+#     address: smtp.gmail.com
+#     port: 587
+#     domain: smtp.gmail.com
+#     user_name: <SMTP_USER_NAME>
+#     password: <SMTP_USER_PASSWORD>
+#     authentication: plain
+#     enable_starttls_auto: true

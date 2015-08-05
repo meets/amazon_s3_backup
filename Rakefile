@@ -142,6 +142,7 @@ task :report do
     puts erb.result
 
     Application.instance.hipchat_message(erb.result)
+    Application.instance.sendmail(erb.result)
   end
 
 end

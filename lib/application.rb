@@ -1,6 +1,8 @@
 
 require 'singleton'
 require 'hipchat-api'
+require 'mail'
+require 'deep_hash_transform'
 
 class Application
   include Singleton
@@ -52,6 +54,23 @@ class Application
     return if @config['hipchat'].nil?
     api = HipChat::API.new(@config['hipchat']['token'])
     api.rooms_message(@config['hipchat']['room_id'], "backup", message, 1, @config['hipchat']['color'], "text")
+  end
+
+  # メール送信
+  def sendmail(message)
+    return if @config['mail'].nil?
+
+    mail_settings = @config['mail']
+
+    mail = Mail.new do
+      from    mail_settings['from']
+      to      mail_settings['to']
+      subject mail_settings['subject']
+      body    message
+    end
+
+    mail.delivery_method(:smtp, mail_settings['smtp'].symbolize_keys)
+    mail.deliver!
   end
 
   private

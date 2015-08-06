@@ -142,8 +142,15 @@ task :report do
     puts erb.result
 
     Application.instance.hipchat_message(erb.result)
-    Application.instance.sendmail(erb.result)
+    Rake::Task['sendmail'].execute(:message => erb.result)
   end
 
+end
+
+
+
+desc "レポートメール送信"
+task :sendmail, :message do |task, args|
+  Application.instance.sendmail(args[:message])
 end
 

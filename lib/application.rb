@@ -17,7 +17,9 @@ class Application
 
   # バックアップサービスの取得
   def service
-    self.send(@config["service_name"])
+    service_name = @config["service_name"]
+    service_name ||= "aws"
+    self.send(service_name)
   end
 
   #設定を初期化する

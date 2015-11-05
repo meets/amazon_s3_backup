@@ -1,3 +1,4 @@
+service_name: aws
 bucket_name: meets_test_bucket
 backups:
   - target: lib/*.rb

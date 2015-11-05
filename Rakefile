@@ -154,3 +154,11 @@ task :sendmail, :message do |task, args|
   Application.instance.sendmail(args[:message])
 end
 
+
+desc "管理下のファイルのダウンロード用URLを発行する"
+task :download, :file do |task, args|
+  # 5分間有効
+  obj = Application.instance.bucket.objects[args[:file]]
+  puts obj.url_for(:read, :expires => 5 * 60).to_s
+
+end

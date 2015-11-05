@@ -3,6 +3,9 @@ require 'singleton'
 require 'hipchat-api'
 require 'mail'
 require 'deep_hash_transform'
+require './lib/backup/aws'
+require './lib/backup/azure'
+
 
 class Application
   include Singleton
@@ -12,11 +15,36 @@ class Application
     init
   end
 
+  # バックアップサービスの取得
+  def service
+    self.send(@config["service_name"])
+  end
 
   #設定を初期化する
   def init
-    init_aws
     read_config
+  end
+
+  # Amazon S3接続用の設定を取得
+  def aws_config
+    config_file = File.join(root_path, 'config/aws.yml')
+    YAML.load(File.read(config_file))
+  end
+
+  # AzureStorage接続用の設定を取得
+  def azure_config
+    config_file = File.join(root_path, 'config/azure.yml')
+    YAML.load(File.read(config_file))
+  end
+
+  # AmazonS3バックアップ用のサービス
+  def aws
+    Backup::Aws.new
+  end
+
+  # Azureバックアップ用のサービス
+  def azure
+    Backup::Azure.new
   end
 
 
@@ -25,19 +53,6 @@ class Application
   def root_path
     File.dirname(File.dirname(__FILE__))
   end
-
-
-  #バックアップ対象のバケットを取得
-  def bucket
-    if @bucket != nil
-      return @bucket
-    end
-
-    #awsオブジェクトの作成
-    s3 = AWS::S3.new
-    @bucket = s3.buckets[@config['bucket_name']]
-  end
-
 
   #バックアップ対象のリストを取得する
   def backups
@@ -84,14 +99,5 @@ class Application
 
     end
 
-
-    # aws-sdkをセットアップ
-    def init_aws
-
-      #AWS-SDKの設定読み込み
-      config_file = File.join(root_path, 'config/aws.yml')
-      config = YAML.load(File.read(config_file))
-      AWS.config(config)
-    end
 
 end

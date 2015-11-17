@@ -80,8 +80,30 @@ module Backup
           end
 
           #アップロード
-          content = File.open(file, 'rb') { |f| f.read }
-          blobs.create_block_blob(self.bucket_name, upload_name, content)
+          block_ids = []
+          File.open(file, 'rb') do |f|
+            i = 0
+
+            loop do
+
+              # 4MBずつ処理
+              content = f.read(4 * 1024 * 1024)
+              break if content.nil?
+
+              # ブロックIDの生成
+              i += 1
+              block_id = "#{upload_name}#{i}"
+              block_ids << ["#{upload_name}#{i}"]
+
+              # ブロックのアップロード
+              blobs.create_blob_block(self.bucket_name, upload_name, block_id, content)
+
+            end
+
+            # アップロードしたブロックのコミット
+            blobs.commit_blob_blocks(self.bucket_name, upload_name, block_ids)
+
+          end
 
           #ファイルの削除
           if config.key?('delete?') && config['delete?'].kind_of?(TrueClass)

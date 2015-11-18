@@ -79,6 +79,15 @@ module Backup
 
           end
 
+          # 同名のファイルを削除しておく
+          begin
+            blobs.delete_blob(self.bucket_name, upload_name)
+          rescue ::Azure::Core::Http::HTTPError => e
+
+            # 同名のファイルがない場合は無視
+            raise e if e.type != "BlobNotFound"
+          end
+
           #アップロード
           block_ids = []
           File.open(file, 'rb') do |f|
@@ -92,8 +101,8 @@ module Backup
 
               # ブロックIDの生成
               i += 1
-              block_id = "#{upload_name}#{i}"
-              block_ids << ["#{upload_name}#{i}"]
+              block_id = "%07d"%[i]
+              block_ids << [block_id]
 
               # ブロックのアップロード
               blobs.create_blob_block(self.bucket_name, upload_name, block_id, content)

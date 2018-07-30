@@ -7,6 +7,9 @@ backups:
     cycle: 3
   - target: invalid test
     upload_dir: test2
+# slack:
+#   webhook: 
+#   channel: 
 # hipchat:
 #   token: 
 #   room_id: 

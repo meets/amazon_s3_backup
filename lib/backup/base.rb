@@ -26,6 +26,7 @@ module Backup
         result = erb.result(binding)
         puts result
 
+        Application.instance.slack_message(result)
         Application.instance.hipchat_message(result)
         Rake::Task['sendmail'].execute(:message => result)
       end

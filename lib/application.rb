@@ -6,6 +6,10 @@ require 'deep_hash_transform'
 require './lib/backup/aws'
 require './lib/backup/azure'
 
+require 'net/http'
+require 'uri'
+require 'json'
+
 
 class Application
   include Singleton
@@ -71,6 +75,24 @@ class Application
     return if @config['hipchat'].nil?
     api = HipChat::API.new(@config['hipchat']['token'])
     api.rooms_message(@config['hipchat']['room_id'], "backup", message, 1, @config['hipchat']['color'], "text")
+  end
+
+  #slack連携
+  def slack_message(message)
+    return if @config['slack'].nil?
+
+    uri  = URI.parse(@config['slack']['webhook'])
+    params = {
+      channel: @config['slack']['channel'],
+      text: message,
+    }
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = true
+    http.start do
+      request = Net::HTTP::Post.new(uri.path)
+      request.set_form_data(payload: params.to_json)
+      http.request(request)
+    end
   end
 
   # メール送信

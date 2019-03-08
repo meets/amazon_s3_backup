@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 
 gem 'rake'
-gem 'aws-sdk'
+gem 'aws-sdk', '~> 3'
 gem 's3etag'
 gem "azure"
 gem 'hipchat-api'

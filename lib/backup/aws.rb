@@ -1,7 +1,7 @@
 
 require 'aws-sdk'
 require './lib/backup/base'
-
+require "pry"
 
 module Backup
   class Aws < Base
@@ -11,15 +11,18 @@ module Backup
 
     # コンストラクタ
     def initialize
-      AWS.config(Application.instance.aws_config)
+      ::Aws.config.update({
+        region: Application.instance.aws_config["region"],
+        credentials: ::Aws::Credentials.new(Application.instance.aws_config["access_key_id"], Application.instance.aws_config["secret_access_key"])
+      })
 
-      s3 = AWS::S3.new
-      @bucket = s3.buckets[Application.instance.bucket_name]
+      s3 = ::Aws::S3::Resource.new
+      @bucket = s3.bucket(Application.instance.bucket_name)
     end
 
     # 同名ファイルがアップロード済みであるかを確認
     def exists?(file)
-      @bucket.objects[file].exists?
+      @bucket.object(file).exists?
     end
 
     # バックアップ
@@ -62,7 +65,7 @@ module Backup
                 mv_name = upload_name + (i > 0 ? ".#{i}" : '')
 
                 if self.exists?(org_name)
-                  @bucket.objects[org_name].move_to(mv_name)
+                  @bucket.object(org_name).move_to( @bucket.object(mv_name) )
                 end
               end
             end
@@ -70,9 +73,11 @@ module Backup
           end
 
           #アップロード
-          @bucket.objects.create(upload_name, Pathname.new(file),
-            :server_side_encryption => :aes256,
-            :metadata => { 'create_date' => Time.now.strftime('%Y-%m-%d') })
+          obj = @bucket.object(upload_name)
+          obj.upload_file(file,
+            :server_side_encryption => 'AES256',
+            :metadata => { 'created_date' => Time.now.strftime('%Y-%m-%d') }
+          )
 
           #ファイルの削除
           if config.key?('delete?') && config['delete?'].kind_of?(TrueClass)
@@ -89,7 +94,9 @@ module Backup
     def uploaded_files
       list = []
 
-      @bucket.objects.each do | obj |
+      @bucket.objects.each do | summary |
+
+        obj = @bucket.object(summary.key)
 
         next unless backups.find { |item| obj.key.match(/#{item['upload_dir']}\//) }
 
@@ -108,7 +115,7 @@ module Backup
           :key => obj.key,
           :name => name,
           :length => FilesizeUnitConvert.int2str(length),
-          :date => (obj.metadata['created_date'] ? obj.metadata['created_date'] : obj.last_modified).strftime('%Y-%m-%d'),
+          :date => (obj.metadata['created_date'] ? obj.metadata['created_date'] : obj.last_modified.strftime('%Y-%m-%d')),
           :content_length => obj.content_length
         })
       end
